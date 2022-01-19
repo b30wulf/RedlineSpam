@@ -17,7 +17,7 @@ Microsoft Office Proofing  2016
 Microsoft Office Shared MUI  2016
 Strumenti di correzione di Microsoft Office 2016 - Italiano
 Microsoft Office Proofing Tools 2016 - English
-Outils de vérification linguistique 2016 de Microsoft Office - Français
+Outils de verification linguistique 2016 de Microsoft Office - Francais
 Microsoft .NET Framework 4.5.1 Multi-Targeting Pack
 Apple Software Update
 Intel(R) Wireless Bluetooth(R)
@@ -43,7 +43,7 @@ Microsoft Visual C++ 2008 Redistributable - x64 9.0.30729.4148
 Apple Mobile Device Support
 NI Security Update (KB 67L8LCQW)
 Microsoft SQL Server 2016 LocalDB
-Intel® PROSet/Wireless WiFi Software
+Intel PROSet/Wireless WiFi Software
 Dell Command | Update for Windows 10
 Microsoft Visual C++ 2010  x64 Redistributable - 10.0.40219
 Windows SDK Facade Windows WinMD Versioned
@@ -104,7 +104,7 @@ Intel(R) Trusted Connect Service Client x86
 Intel(R) Trusted Connect Service Client x64
 NI Trace Engine (64-bit)
 Microsoft .NET Core SDK - 2.1.201 (x64)
-Intel® Hardware Accelerated Execution Manager
+Intel Hardware Accelerated Execution Manager
 vs_clickoncesigntoolmsi
 Intel(R) ME UninstallLegacy
 NI SSL Support
@@ -201,7 +201,7 @@ vs_devenvmsi
 Universal CRT Tools x86
 Microsoft Workflow Debugger v1.0 for x86
 Windows SDK Desktop Headers arm64
-Comsol ® Exposys SanScreen Connector
+Comsol Exposys SanScreen Connector
 NI EulaDepot
 Microsoft System CLR Types for SQL Server 2014
 Microsoft .NET Core Runtime - 2.0.7 (x64)
@@ -253,7 +253,7 @@ Microsoft Windows Communication Foundation Diagnostic Pack for x86
 Universal CRT Headers Libraries and Sources
 Microsoft Identity Extensions
 Apple Application Support (32-Bit)
-Cisco WebEx-Produktivitätswerkzeuge
+Cisco WebEx-Productivity tools
 NI Uninstaller
 Microsoft Visual Studio Tools for Applications 2017 x86 Hosting Support
 Intel(R) Management Engine Components
