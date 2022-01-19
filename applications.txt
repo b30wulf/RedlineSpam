@@ -77,7 +77,7 @@ Microsoft Portable Library Multi-Targeting Pack Language Pack - deu
 ClickOnce Bootstrapper Package for Microsoft .NET Framework
 NI LabVIEW Runtime 2014 SP1
 Waldo Navpad
-Kumulatives Microsoft .NET Framework Intellisense Pack für Visual Studio ()
+Kumulatives Microsoft .NET Framework Intellisense Pack for Visual Studio ()
 Microsoft VC++ redistributables repacked.
 WinAppDeploy
 icecap_collectionresources
@@ -114,7 +114,7 @@ Windows Mobile Connectivity Tools 10.0.15254.0 - Desktop x86
 sptools_Microsoft.VisualStudio.Vsto.Msi.x64
 Apple Application Support (64-Bit)
 Windows SDK
-Active Directory Authentication Library für SQL Server
+Active Directory Authentication Library for SQL Server
 WinRT Intellisense PPI - Other Languages
 Microsoft Visual C++ 2013 x64 Additional Runtime - 12.0.21005
 WinRT Intellisense Desktop - Other Languages
@@ -189,7 +189,7 @@ WinRT Intellisense IoT - Other Languages
 Intel(R) Management Engine Components
 NI Curl 14.0.0 (64-bit)
 Windows SDK DirectX x64 Remote
-Microsoft-System-CLR-Typen für SQL Server 2017
+Microsoft-System-CLR-Typen for SQL Server 2017
 Microsoft Visual Studio Tools for Applications 2017 x64 Hosting Support
 NI LabWindows/CVI 2013 SP2 Low-Level Driver (Updated)
 Windows SDK Desktop Libs arm
@@ -233,7 +233,7 @@ vs_SQLClickOnceBootstrappermsi
 vs_communitymsi
 VS WCF Debugging
 vs_communitymsires
-Microsoft-System-CLR-Typen für SQL Server 2017
+Microsoft-System-CLR-Typen for SQL Server 2017
 Windows SDK Desktop Headers arm
 Cisco WebEx Meeting Center
 NI MDF Support
