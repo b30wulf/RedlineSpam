@@ -31,3 +31,6 @@ and finally restart tor service to make changes take effect<BR>
   
 # Weaponization
 With the flag `--weaponization_path <path>` you can tell RedlineSpam to get a payload of your choice (currently only .exe files) and send it to the attacker as a bait. Use cases for this might be leveraging CobaltStrike beacons etc.
+  
+# Disclaimer
+For educational purposes only. Don't pwn what you don't own.
