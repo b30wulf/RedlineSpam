@@ -5,6 +5,7 @@ import json
 import random
 import uuid
 import string
+import urllib3
 from random import getrandbits
 from ipaddress import IPv4Address
 import pycountry
@@ -29,7 +30,7 @@ fileCountrycodes = "iso_country_codes.txt"
 fileSoftware = "applications.txt"
 fakeDomains = []
 tor_password = "MyStr0n9P#D"
-
+threatfox_api_key = ''
 
 class RedlineSettings:
     """MyClass class instance"""
@@ -80,6 +81,40 @@ def print_header():
     ColorPrint.print_pass("            [ @hariomenkel  ]           |_|                    ")
     print("\n")
 
+
+def query_ThreatFox(server, conf):
+    if threatfox_api_key == "":
+        ColorPrint.print_warn("No API key for ThreatFox defined in spam.py! Please add one to interact with ThreatFox!")
+        return
+
+    try:
+        r = requests.post('https://threatfox-api.abuse.ch/api/v1/', json = {'query':'search_ioc', 'search_term':server}).json()
+        if r['query_status'] == "no_result":
+            ColorPrint.print_pass("Good news! IOC '" + server  + "' was not known to ThreatFox! Will post to ThreatFox ...")
+            # IOC is not known and we can submit it
+            headers = { "API-KEY": threatfox_api_key,}
+            pool = urllib3.HTTPSConnectionPool('threatfox-api.abuse.ch', port=443, maxsize=50, headers=headers, cert_reqs='CERT_NONE', assert_hostname=True)
+    
+            data = {
+                    'query':            'submit_ioc',
+                    'threat_type':      'botnet_cc',
+                    'ioc_type':         'url',
+                    'malware':          'win.redline_stealer',
+                    'confidence_level': '100',
+                    'reference':        '',
+                    'comment':          conf,
+                    'anonymous':        0,
+                    'tags': [ 'RedlineStealer'],
+                    'iocs': [ server ]
+            }
+
+            json_data = json.dumps(data)
+            response = pool.request("POST", "/api/v1/", body=json_data)
+            response = response.data.decode("utf-8", "ignore")
+        else:
+            ColorPrint.print_warn("IOC '" + server + "' was already known in ThreatFox and will not be posted!")
+    except:
+        ColorPrint.print_fail("Error while contacting ThreatFox: " + str(e))
 
 def test_tor():
     try:
@@ -163,7 +198,8 @@ def get_panel_version(url):
     return version
 
 
-def get_settings(url, version):
+def get_settings(url, version, publish_to_ThreatFox):
+    config_xml = ""
     if version == "2.1":
         try:
             headers = {'Content-Type': 'text/xml; charset=utf-8',
@@ -180,6 +216,7 @@ def get_settings(url, version):
                 json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabImClients'],
                 json_result['s:Envelope']['s:Body']['GetSettingsResponse']['GetSettingsResult']['a:GrabPaths'],
                 None, None, None, None, None)
+            config_xml = x.text
         except Exception as e:
             ColorPrint.print_fail("Unable to download config from " + url + " - Aborting")
             ColorPrint.print_fail(str(e))
@@ -204,10 +241,14 @@ def get_settings(url, version):
                 json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanTelegram'],
                 json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanVPN'],
                 json_result['s:Envelope']['s:Body']['EnvironmentSettingsResponse']['EnvironmentSettingsResult']['a:ScanWallets'])
+            config_xml = x.text
         except Exception as e:
             ColorPrint.print_fail("Unable to download config from " + url + " - Aborting")
             ColorPrint.print_fail(str(e))
 
+    if version != "0.0":
+        if publish_to_ThreatFox:
+            query_ThreatFox(url, config_xml)
     return r
 
 
@@ -658,7 +699,7 @@ if __name__ == '__main__':
     parser.add_argument("--use_tor", help="Should tor be used to connect to target?", default=False,
                         type=lambda x: (str(x).lower() == 'true'), required=True)
     parser.add_argument("--weaponization_path", help="Path to an .exe file you want to send to the attacker as stolen data disguised as document (e.g. CobaltStrike beacon)", type=str, required=False)
-
+    parser.add_argument("--publish_to_threatfox", help="Publish your findings to ThreatFox", default=False, type=lambda x: (str(x).lower() == 'true'))
     args = parser.parse_args()
 
     tor_session = None
@@ -675,7 +716,7 @@ if __name__ == '__main__':
             ColorPrint.print_fail("Could not determine panel version - aborting")
             exit()
             
-        r = get_settings(args.url, version)
+        r = get_settings(args.url, version, args.publish_to_threatfox)
 
         if args.report_count > 0:
             for i in range(args.report_count):
