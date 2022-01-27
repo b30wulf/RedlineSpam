@@ -199,6 +199,7 @@ def get_panel_version(url):
 
 
 def get_settings(url, version, publish_to_ThreatFox):
+    r = None
     config_xml = ""
     if version == "2.1":
         try:
@@ -245,10 +246,12 @@ def get_settings(url, version, publish_to_ThreatFox):
         except Exception as e:
             ColorPrint.print_fail("Unable to download config from " + url + " - Aborting")
             ColorPrint.print_fail(str(e))
+            exit()
 
     if version != "0.0":
-        if publish_to_ThreatFox:
-            query_ThreatFox(url, config_xml)
+        if config_xml != "":
+            if publish_to_ThreatFox:
+                query_ThreatFox(url, config_xml)
     return r
 
 
@@ -720,7 +723,7 @@ if __name__ == '__main__':
 
         if args.report_count > 0:
             for i in range(args.report_count):
-                ColorPrint.print_info("Now sending item #" + str(i))
+                ColorPrint.print_info("Now sending item #" + str(i) + " to " + args.url)
                 if args.use_tor:
                     if i % 50 == 0:
                         renew_tor_ip()
@@ -728,7 +731,7 @@ if __name__ == '__main__':
         else:
             counter = 0
             while 1 == 1:
-                print("Now sending item #" + str(counter))
+                print("Now sending item #" + str(counter) + " to " + args.url)
                 if args.use_tor:
                     if counter % 50 == 0:
                         renew_tor_ip()
